@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="Control de finanzas familiares y negocios">
+    <title>Finanzas del Hogar</title>
+    
+    <!-- Manifest para PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <!-- Icono -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%232c3e50'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='0.3em'>💰</text></svg>">
+</head>
+<body>
+    <div id="app">
+        <!-- Navegación -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <h1>💰 Finanzas del Hogar</h1>
+            </div>
+            <ul class="navbar-menu">
+                <li><button class="nav-btn active" data-tab="dashboard">Dashboard</button></li>
+                <li><button class="nav-btn" data-tab="ingresos">Ingresos</button></li>
+                <li><button class="nav-btn" data-tab="gastos">Gastos</button></li>
+                <li><button class="nav-btn" data-tab="deudas">Deudas</button></li>
+                <li><button class="nav-btn" data-tab="configuracion">⚙️</button></li>
+            </ul>
+        </nav>
+
+        <!-- Contenedor Principal -->
+        <main class="container">
+            <!-- TAB: Dashboard -->
+            <section id="dashboard-tab" class="tab-content active">
+                <div id="dashboard-container"></div>
+            </section>
+
+            <!-- TAB: Ingresos -->
+            <section id="ingresos-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>Registro de Ingresos</h2>
+                </div>
+                
+                <form id="form-ingresos" class="form-container">
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="fecha-ingreso" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Origen del Ingreso</label>
+                        <select id="origen-ingreso" required>
+                            <option value="">-- Selecciona --</option>
+                            <option value="taller">Taller de Costura</option>
+                            <option value="tienda1">Tienda 1</option>
+                            <option value="tienda2">Tienda 2</option>
+                            <option value="bazar">Bazar</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Venta Bruta ($)</label>
+                        <input type="number" id="venta-bruta" step="0.01" required placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Costos/Gastos de Producción ($)</label>
+                        <input type="number" id="costo-produccion" step="0.01" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ganancia Neta ($)</label>
+                        <input type="number" id="ganancia-neta" step="0.01" placeholder="Calculado automáticamente" readonly>
+                    </div>
+
+                    <div class="form-group info-box">
+                        <label>⚠️ Sujeto a Impuestos (Hacienda)</label>
+                        <select id="sujeto-impuesto">
+                            <option value="no">No</option>
+                            <option value="si">Sí</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notas</label>
+                        <textarea id="notas-ingreso" placeholder="Detalles adicionales"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar Ingreso</button>
+                </form>
+
+                <div id="lista-ingresos" class="lista-container"></div>
+            </section>
+
+            <!-- TAB: Gastos -->
+            <section id="gastos-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>Registro de Gastos del Hogar</h2>
+                </div>
+
+                <form id="form-gastos" class="form-container">
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="fecha-gasto" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Categoría de Gasto</label>
+                        <select id="categoria-gasto" required>
+                            <option value="">-- Selecciona --</option>
+                            <option value="servicios">Servicios (Luz, Agua, Gas)</option>
+                            <option value="comida">Comida/Despensa</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="medicinas">Medicinas/Salud</option>
+                            <option value="ropa">Ropa/Accesorios</option>
+                            <option value="diezmo">Diezmo (Iglesia)</option>
+                            <option value="impuestos">Impuestos (Hacienda)</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Monto ($)</label>
+                        <input type="number" id="monto-gasto" step="0.01" required placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" id="descripcion-gasto" placeholder="Ej: Recibo de luz, Pan y leche, etc.">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar Gasto</button>
+                </form>
+
+                <div id="lista-gastos" class="lista-container"></div>
+            </section>
+
+            <!-- TAB: Deudas -->
+            <section id="deudas-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>Deudas y Compromisos</h2>
+                </div>
+
+                <form id="form-deudas" class="form-container">
+                    <div class="form-group">
+                        <label>Acreedor/Concepto</label>
+                        <input type="text" id="acreedor" placeholder="Ej: Banco, Proveedor, etc." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Monto Adeudado ($)</label>
+                        <input type="number" id="monto-deuda" step="0.01" required placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fecha de Vencimiento</label>
+                        <input type="date" id="fecha-vencimiento" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="estado-deuda">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="vencida">Vencida</option>
+                            <option value="pagada">Pagada</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notas</label>
+                        <textarea id="notas-deuda" placeholder="Términos, intereses, etc."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar Deuda</button>
+                </form>
+
+                <div id="lista-deudas" class="lista-container"></div>
+            </section>
+
+            <!-- TAB: Configuración -->
+            <section id="configuracion-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>⚙️ Configuración</h2>
+                </div>
+
+                <div class="config-container">
+                    <div class="config-item">
+                        <h3>Porcentaje de Impuesto (Hacienda)</h3>
+                        <p>Ingresa el % que debes pagar de impuestos</p>
+                        <div class="input-group">
+                            <input type="number" id="porcentaje-impuesto" step="0.01" placeholder="5.00" min="0" max="100">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="config-item">
+                        <h3>Porcentaje de Diezmo</h3>
+                        <p>Porcentaje de ganancia a apartar como diezmo</p>
+                        <div class="input-group">
+                            <input type="number" id="porcentaje-diezmo" step="0.01" placeholder="10.00" min="0" max="100">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="config-item">
+                        <h3>Datos Personales</h3>
+                        <div class="form-group">
+                            <label>Nombre de Usuario</label>
+                            <input type="text" id="nombre-usuario" placeholder="Jimmy">
+                        </div>
+                    </div>
+
+                    <div class="config-item danger">
+                        <h3>⚠️ Zona de Peligro</h3>
+                        <p>Estas acciones no se pueden deshacer</p>
+                        <button id="btn-exportar-datos" class="btn btn-secondary">📥 Exportar Datos (JSON)</button>
+                        <button id="btn-limpiar-datos" class="btn btn-danger">🗑️ Limpiar Todos los Datos</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/almacenamiento.js"></script>
+    <script src="js/modulos-calculo.js"></script>
+    <script src="js/modulos-ingresos.js"></script>
+    <script src="js/modulos-gastos.js"></script>
+    <script src="js/modulos-deudas.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Registrar Service Worker para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registrado'))
+                .catch(err => console.log('Error en Service Worker:', err));
+        }
+    </script>
+</body>
+</html>
