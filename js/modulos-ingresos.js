@@ -58,6 +58,11 @@ const ModuloIngresos = {
         // Guardar
         Almacenamiento.agregarIngreso(ingreso);
         
+        // Sincronizar con Firebase
+        if (typeof FirebaseSync !== 'undefined') {
+            FirebaseSync.sincronizarIngresos();
+        }
+        
         // Limpiar formulario
         this.formIngresos.reset();
         const hoy = new Date().toISOString().split('T')[0];

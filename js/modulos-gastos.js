@@ -48,6 +48,11 @@ const ModuloGastos = {
         // Guardar
         Almacenamiento.agregarGasto(gasto);
         
+        // Sincronizar con Firebase
+        if (typeof FirebaseSync !== 'undefined') {
+            FirebaseSync.sincronizarGastos();
+        }
+        
         // Limpiar formulario
         this.formGastos.reset();
         const hoy = new Date().toISOString().split('T')[0];

@@ -55,6 +55,11 @@ const ModuloDeudas = {
         // Guardar
         Almacenamiento.agregarDeuda(deuda);
         
+        // Sincronizar con Firebase
+        if (typeof FirebaseSync !== 'undefined') {
+            FirebaseSync.sincronizarDeudas();
+        }
+        
         // Limpiar formulario
         this.formDeudas.reset();
         const fechaVencimiento = new Date();
