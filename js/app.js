@@ -63,8 +63,12 @@ class FinanzasApp {
         document.getElementById('porcentaje-diezmo').addEventListener('change', () => this.guardarConfiguracion());
         document.getElementById('nombre-usuario').addEventListener('change', () => this.guardarConfiguracion());
         
-        // Botones de peligro
+        // Botones de importar/exportar
+        document.getElementById('btn-importar-datos').addEventListener('click', () => this.abrirImportador());
+        document.getElementById('input-importar-datos').addEventListener('change', (e) => this.importarDatos(e));
         document.getElementById('btn-exportar-datos').addEventListener('click', () => this.exportarDatos());
+        
+        // Botones de peligro
         document.getElementById('btn-limpiar-datos').addEventListener('click', () => this.limpiarDatos());
     }
     
@@ -94,6 +98,77 @@ class FinanzasApp {
     cargarConfiguracion() {
         const config = Almacenamiento.obtenerConfiguracion();
         console.log('Configuración cargada:', config);
+    }
+    
+    /**
+     * Abrir diálogo de seleccionar archivo
+     */
+    abrirImportador() {
+        document.getElementById('input-importar-datos').click();
+    }
+    
+    /**
+     * Importar datos desde JSON
+     */
+    importarDatos(event) {
+        const archivo = event.target.files[0];
+        
+        if (!archivo) return;
+        
+        const lector = new FileReader();
+        
+        lector.onload = (e) => {
+            try {
+                const contenido = e.target.result;
+                const datos = JSON.parse(contenido);
+                
+                // Validar que tiene estructura correcta
+                if (!datos.ingresos && !datos.gastos && !datos.deudas) {
+                    alert('⚠️ Archivo inválido. No tiene la estructura correcta.');
+                    return;
+                }
+                
+                // Confirmar antes de importar
+                const confirmacion = confirm('⚠️ Esto SOBRESCRIBIRÁ todos tus datos actuales. ¿Estás seguro?');
+                
+                if (confirmacion) {
+                    // Importar los datos
+                    Almacenamiento.importarJSON(contenido);
+                    
+                    // Sincronizar con Firebase
+                    if (typeof FirebaseSync !== 'undefined') {
+                        if (datos.ingresos) FirebaseSync.sincronizarIngresos();
+                        if (datos.gastos) FirebaseSync.sincronizarGastos();
+                        if (datos.deudas) FirebaseSync.sincronizarDeudas();
+                    }
+                    
+                    // Actualizar vistas
+                    if (typeof DashboardModule !== 'undefined') {
+                        DashboardModule.actualizar();
+                    }
+                    if (typeof ModuloIngresos !== 'undefined') {
+                        ModuloIngresos.renderizarLista();
+                    }
+                    if (typeof ModuloGastos !== 'undefined') {
+                        ModuloGastos.renderizarLista();
+                    }
+                    if (typeof ModuloDeudas !== 'undefined') {
+                        ModuloDeudas.renderizarLista();
+                    }
+                    
+                    alert('✅ Datos importados correctamente. Se están sincronizando con Firebase...');
+                    
+                    // Limpiar input
+                    event.target.value = '';
+                }
+            } catch (error) {
+                console.error('Error al importar:', error);
+                alert('❌ Error al importar: ' + error.message);
+                event.target.value = '';
+            }
+        };
+        
+        lector.readAsText(archivo);
     }
     
     /**
