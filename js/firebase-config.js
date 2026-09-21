@@ -16,6 +16,9 @@ const firebaseConfig = {
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 
+// Establecer bandera de que Firebase está listo
+window.firebaseReady = false;
+
 // Obtener referencia a la base de datos
 const database = firebase.database();
 
@@ -35,10 +38,12 @@ const FirebaseSync = {
         firebase.auth().signInAnonymously()
             .then(result => {
                 console.log('✅ Usuario anónimo autenticado');
+                window.firebaseReady = true;
                 this.escucharCambios();
             })
             .catch(error => {
                 console.error('Error en autenticación:', error);
+                window.firebaseReady = false;
             });
     },
     

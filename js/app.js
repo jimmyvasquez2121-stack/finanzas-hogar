@@ -135,11 +135,15 @@ class FinanzasApp {
                     // Importar los datos
                     Almacenamiento.importarJSON(contenido);
                     
-                    // Sincronizar con Firebase
-                    if (typeof FirebaseSync !== 'undefined') {
-                        if (datos.ingresos) FirebaseSync.sincronizarIngresos();
-                        if (datos.gastos) FirebaseSync.sincronizarGastos();
-                        if (datos.deudas) FirebaseSync.sincronizarDeudas();
+                    // Esperar a que Firebase esté listo y sincronizar
+                    if (typeof FirebaseSync !== 'undefined' && window.firebaseReady) {
+                        setTimeout(() => {
+                            if (datos.ingresos) FirebaseSync.sincronizarIngresos();
+                            if (datos.gastos) FirebaseSync.sincronizarGastos();
+                            if (datos.deudas) FirebaseSync.sincronizarDeudas();
+                        }, 500);
+                    } else if (typeof FirebaseSync === 'undefined') {
+                        console.warn('Firebase aún no está listo. Se guardaron los datos localmente.');
                     }
                     
                     // Actualizar vistas
