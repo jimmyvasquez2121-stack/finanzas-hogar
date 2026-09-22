@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#2c3e50">
-    <meta name="description" content="Control de finanzas familiares y negocios">
-    <title>Finanzas del Hogar</title>
+    <meta name="description" content="Control de finanzas familiares y negocios - Flujos de caja">
+    <title>Finanzas del Hogar v2</title>
     
     <!-- Manifest para PWA -->
     <link rel="manifest" href="manifest.json">
@@ -16,20 +16,25 @@
     
     <!-- Icono -->
     <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%232c3e50'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='0.3em'>💰</text></svg>">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
+    <script src="js/firebase-config.js"></script>
 </head>
 <body>
     <div id="app">
         <!-- Navegación -->
         <nav class="navbar">
             <div class="navbar-brand">
-                <h1>💰 Finanzas del Hogar</h1>
+                <h1>💰 Finanzas Inteligentes</h1>
             </div>
             <ul class="navbar-menu">
                 <li><button class="nav-btn active" data-tab="dashboard">Dashboard</button></li>
                 <li><button class="nav-btn" data-tab="ingresos">Ingresos</button></li>
                 <li><button class="nav-btn" data-tab="gastos">Gastos</button></li>
-                <li><button class="nav-btn" data-tab="deudas">Deudas</button></li>
-                <li><button class="nav-btn" data-tab="configuracion">⚙️</button></li>
+                <li><button class="nav-btn" data-tab="flujos">Flujos</button></li>
+                <li><button class="nav-btn" data-tab="config">⚙️</button></li>
             </ul>
         </nav>
 
@@ -65,26 +70,22 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Venta Bruta ($)</label>
-                        <input type="number" id="venta-bruta" step="0.01" required placeholder="0.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Costos/Gastos de Producción ($)</label>
-                        <input type="number" id="costo-produccion" step="0.01" placeholder="0.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Ganancia Neta ($)</label>
-                        <input type="number" id="ganancia-neta" step="0.01" placeholder="Calculado automáticamente" readonly>
+                        <label>Ingreso Total ($)</label>
+                        <input type="number" id="ingreso-total" step="0.01" required placeholder="0.00">
                     </div>
 
                     <div class="form-group info-box">
-                        <label>⚠️ Sujeto a Impuestos (Hacienda)</label>
-                        <select id="sujeto-impuesto">
-                            <option value="no">No</option>
-                            <option value="si">Sí</option>
-                        </select>
+                        <label>📊 Desglose Automático (22% Ganancia / 78% Costo)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.8rem;">
+                            <div>
+                                <label style="font-size: 0.9rem;">Ganancia (22%)</label>
+                                <input type="number" id="ganancia-calculo" step="0.01" readonly placeholder="0.00">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.9rem;">Costo (78%)</label>
+                                <input type="number" id="costo-calculo" step="0.01" readonly placeholder="0.00">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -101,7 +102,7 @@
             <!-- TAB: Gastos -->
             <section id="gastos-tab" class="tab-content">
                 <div class="section-header">
-                    <h2>Registro de Gastos del Hogar</h2>
+                    <h2>Registro de Gastos</h2>
                 </div>
 
                 <form id="form-gastos" class="form-container">
@@ -111,18 +112,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Categoría de Gasto</label>
-                        <select id="categoria-gasto" required>
+                        <label>Tipo de Gasto</label>
+                        <select id="tipo-gasto" required>
                             <option value="">-- Selecciona --</option>
-                            <option value="servicios">Servicios (Luz, Agua, Gas)</option>
-                            <option value="comida">Comida/Despensa</option>
-                            <option value="transporte">Transporte</option>
-                            <option value="medicinas">Medicinas/Salud</option>
-                            <option value="ropa">Ropa/Accesorios</option>
-                            <option value="diezmo">Diezmo (Iglesia)</option>
-                            <option value="impuestos">Impuestos (Hacienda)</option>
-                            <option value="otro">Otro</option>
+                            <option value="inversion">🏭 Reinversión/Compra de Productos</option>
+                            <option value="familiar">👨‍👩‍👧‍👦 Gasto Familiar</option>
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" id="descripcion-gasto" placeholder="Ej: Compra de tela, Pago de servicios, etc." required>
                     </div>
 
                     <div class="form-group">
@@ -131,8 +131,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Descripción</label>
-                        <input type="text" id="descripcion-gasto" placeholder="Ej: Recibo de luz, Pan y leche, etc.">
+                        <label>Tarjeta Utilizada</label>
+                        <select id="tarjeta-gasto" required>
+                            <option value="">-- Selecciona --</option>
+                            <option value="tarjeta1">Tarjeta 1</option>
+                            <option value="tarjeta2">Tarjeta 2</option>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="otra">Otra</option>
+                        </select>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Guardar Gasto</button>
@@ -141,66 +147,32 @@
                 <div id="lista-gastos" class="lista-container"></div>
             </section>
 
-            <!-- TAB: Deudas -->
-            <section id="deudas-tab" class="tab-content">
+            <!-- TAB: Flujos de Caja -->
+            <section id="flujos-tab" class="tab-content">
                 <div class="section-header">
-                    <h2>Deudas y Compromisos</h2>
+                    <h2>Flujos de Caja</h2>
                 </div>
-
-                <form id="form-deudas" class="form-container">
-                    <div class="form-group">
-                        <label>Acreedor/Concepto</label>
-                        <input type="text" id="acreedor" placeholder="Ej: Banco, Proveedor, etc." required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Monto Adeudado ($)</label>
-                        <input type="number" id="monto-deuda" step="0.01" required placeholder="0.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Fecha de Vencimiento</label>
-                        <input type="date" id="fecha-vencimiento" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select id="estado-deuda">
-                            <option value="pendiente">Pendiente</option>
-                            <option value="vencida">Vencida</option>
-                            <option value="pagada">Pagada</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Notas</label>
-                        <textarea id="notas-deuda" placeholder="Términos, intereses, etc."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Guardar Deuda</button>
-                </form>
-
-                <div id="lista-deudas" class="lista-container"></div>
+                <div id="flujos-container"></div>
             </section>
 
             <!-- TAB: Configuración -->
-            <section id="configuracion-tab" class="tab-content">
+            <section id="config-tab" class="tab-content">
                 <div class="section-header">
                     <h2>⚙️ Configuración</h2>
                 </div>
 
                 <div class="config-container">
                     <div class="config-item">
-                        <h3>Porcentaje de Impuesto (Hacienda)</h3>
-                        <p>Ingresa el % que debes pagar de impuestos</p>
+                        <h3>% de Ganancia</h3>
+                        <p>Porcentaje automático de ganancia en ingresos</p>
                         <div class="input-group">
-                            <input type="number" id="porcentaje-impuesto" step="0.01" placeholder="5.00" min="0" max="100">
+                            <input type="number" id="porcentaje-ganancia" step="0.01" placeholder="22.00" min="0" max="100">
                             <span>%</span>
                         </div>
                     </div>
 
                     <div class="config-item">
-                        <h3>Porcentaje de Diezmo</h3>
+                        <h3>% de Diezmo</h3>
                         <p>Porcentaje de ganancia a apartar como diezmo</p>
                         <div class="input-group">
                             <input type="number" id="porcentaje-diezmo" step="0.01" placeholder="10.00" min="0" max="100">
@@ -209,11 +181,9 @@
                     </div>
 
                     <div class="config-item">
-                        <h3>Datos Personales</h3>
-                        <div class="form-group">
-                            <label>Nombre de Usuario</label>
-                            <input type="text" id="nombre-usuario" placeholder="Jimmy">
-                        </div>
+                        <h3>Tarjetas</h3>
+                        <p>Configura tus tarjetas (máximo 4)</p>
+                        <div id="tarjetas-config"></div>
                     </div>
 
                     <div class="config-item">
@@ -236,17 +206,11 @@
 
     <!-- Scripts -->
     <script src="js/almacenamiento.js"></script>
-    <script src="js/modulos-calculo.js"></script>
     <script src="js/modulos-ingresos.js"></script>
     <script src="js/modulos-gastos.js"></script>
-    <script src="js/modulos-deudas.js"></script>
+    <script src="js/modulos-flujos.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/app.js"></script>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
-    <script src="js/firebase-config.js"></script>
 
     <!-- Registrar Service Worker para PWA -->
     <script>

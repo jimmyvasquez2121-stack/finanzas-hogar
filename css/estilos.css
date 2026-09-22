@@ -178,6 +178,22 @@ html, body {
     border-radius: var(--radius);
 }
 
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-group input {
+    flex: 1;
+}
+
+.input-group span {
+    font-weight: 600;
+    color: var(--dark);
+    min-width: 30px;
+}
+
 /* ===== BOTONES ===== */
 .btn {
     padding: 0.8rem 1.5rem;
@@ -214,6 +230,8 @@ html, body {
     background: var(--light);
     color: var(--text);
     border: 1px solid var(--border);
+    width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 .btn-secondary:hover {
@@ -223,6 +241,8 @@ html, body {
 .btn-danger {
     background: var(--danger);
     color: white;
+    width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 .btn-danger:hover {
@@ -232,6 +252,7 @@ html, body {
 .btn-small {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+    width: auto;
 }
 
 /* ===== LISTAS ===== */
@@ -298,10 +319,6 @@ html, body {
     color: var(--danger);
 }
 
-.item-amount.warning {
-    color: var(--warning);
-}
-
 .item-description {
     color: #666;
     font-size: 0.95rem;
@@ -333,42 +350,56 @@ html, body {
     color: white;
 }
 
-/* ===== ALERTAS ===== */
-.alert {
-    padding: 1rem;
+/* ===== CONFIGURACIÓN ===== */
+.config-container {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.config-item {
+    background: white;
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
 }
 
-.alert-info {
-    background: rgba(52, 152, 219, 0.1);
-    border-left: 4px solid var(--secondary);
-    color: var(--secondary);
+.config-item h3 {
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
 }
 
-.alert-warning {
-    background: rgba(243, 156, 18, 0.1);
-    border-left: 4px solid var(--warning);
-    color: #cc7f1a;
+.config-item p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
 }
 
-.alert-danger {
-    background: rgba(231, 76, 60, 0.1);
+.config-item.danger {
     border-left: 4px solid var(--danger);
-    color: var(--danger);
+    background: rgba(231, 76, 60, 0.05);
 }
 
-.alert-success {
-    background: rgba(39, 174, 96, 0.1);
-    border-left: 4px solid var(--success);
-    color: var(--success);
+/* ===== UTILIDADES ===== */
+.text-center {
+    text-align: center;
 }
 
-.alert-icon {
-    font-size: 1.5rem;
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -401,25 +432,4 @@ html, body {
     .item-amount {
         font-size: 1rem;
     }
-}
-
-/* ===== UTILIDADES ===== */
-.text-center {
-    text-align: center;
-}
-
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-
-.empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #999;
-}
-
-.empty-state-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
 }

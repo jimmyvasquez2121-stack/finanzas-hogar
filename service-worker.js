@@ -1,20 +1,19 @@
-const CACHE_NAME = 'finanzas-hogar-v1';
+const CACHE_NAME = 'finanzas-v2-1.0';
 const urlsToCache = [
     '/',
     '/index.html',
     '/manifest.json',
     '/css/estilos.css',
     '/css/dashboard.css',
-    '/js/app.js',
+    '/js/firebase-config.js',
     '/js/almacenamiento.js',
-    '/js/modulos-calculo.js',
     '/js/modulos-ingresos.js',
     '/js/modulos-gastos.js',
-    '/js/modulos-deudas.js',
-    '/js/dashboard.js'
+    '/js/modulos-flujos.js',
+    '/js/dashboard.js',
+    '/js/app.js'
 ];
 
-// Instalar el Service Worker
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -23,7 +22,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activar el Service Worker
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -38,23 +36,18 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch - estrategia: cache first, fallback to network
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Si está en cache, devolver
                 if (response) {
                     return response;
                 }
-                // Si no, intentar desde la red
                 return fetch(event.request)
                     .then(response => {
-                        // No cachear requests no-success
                         if (!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
-                        // Clonar la response
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME)
                             .then(cache => {
@@ -63,7 +56,6 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // Si falla la red, devolver del cache si existe
                         return caches.match(event.request);
                     });
             })

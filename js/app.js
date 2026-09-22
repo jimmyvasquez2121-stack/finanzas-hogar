@@ -1,230 +1,407 @@
-/**
- * App.js
- * Inicialización principal de la aplicación
- */
+// ===== APP PRINCIPAL - ORQUESTACIÓN =====
 
-class FinanzasApp {
-    constructor() {
-        this.inicializarEventos();
-        this.cargarConfiguracion();
-    }
-    
-    /**
-     * Inicializar eventos generales
-     */
-    inicializarEventos() {
-        // Navegación de tabs
-        const navBtns = document.querySelectorAll('.nav-btn');
-        navBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => this.cambiarTab(e));
-        });
-        
-        // Configuración
-        this.inicializarConfiguracion();
-    }
-    
-    /**
-     * Cambiar de tab
-     */
-    cambiarTab(e) {
-        const tabName = e.target.getAttribute('data-tab');
-        
-        // Remover clase active de todos los botones
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // Remover clase active de todos los tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Agregar clase active al botón y tab actual
-        e.target.classList.add('active');
-        const tabElement = document.getElementById(`${tabName}-tab`);
-        if (tabElement) {
-            tabElement.classList.add('active');
-        }
-    }
-    
-    /**
-     * Inicializar sección de configuración
-     */
-    inicializarConfiguracion() {
-        const config = Almacenamiento.obtenerConfiguracion();
-        
-        // Cargar valores en inputs
-        document.getElementById('porcentaje-impuesto').value = config.porcentajeImpuesto || 5;
-        document.getElementById('porcentaje-diezmo').value = config.porcentajeDiezmo || 10;
-        document.getElementById('nombre-usuario').value = config.nombreUsuario || 'Jimmy';
-        
-        // Guardar cuando cambien
-        document.getElementById('porcentaje-impuesto').addEventListener('change', () => this.guardarConfiguracion());
-        document.getElementById('porcentaje-diezmo').addEventListener('change', () => this.guardarConfiguracion());
-        document.getElementById('nombre-usuario').addEventListener('change', () => this.guardarConfiguracion());
-        
-        // Botones de importar/exportar
-        document.getElementById('btn-importar-datos').addEventListener('click', () => this.abrirImportador());
-        document.getElementById('input-importar-datos').addEventListener('change', (e) => this.importarDatos(e));
-        document.getElementById('btn-exportar-datos').addEventListener('click', () => this.exportarDatos());
-        
-        // Botones de peligro
-        document.getElementById('btn-limpiar-datos').addEventListener('click', () => this.limpiarDatos());
-    }
-    
-    /**
-     * Guardar configuración
-     */
-    guardarConfiguracion() {
-        const config = {
-            porcentajeImpuesto: parseFloat(document.getElementById('porcentaje-impuesto').value) || 5,
-            porcentajeDiezmo: parseFloat(document.getElementById('porcentaje-diezmo').value) || 10,
-            nombreUsuario: document.getElementById('nombre-usuario').value || 'Jimmy'
-        };
-        
-        Almacenamiento.guardarConfiguracion(config);
-        
-        // Actualizar dashboard
-        if (typeof DashboardModule !== 'undefined') {
-            DashboardModule.actualizar();
-        }
-        
-        alert('✅ Configuración guardada');
-    }
-    
-    /**
-     * Cargar configuración
-     */
-    cargarConfiguracion() {
-        const config = Almacenamiento.obtenerConfiguracion();
-        console.log('Configuración cargada:', config);
-    }
-    
-    /**
-     * Abrir diálogo de seleccionar archivo
-     */
-    abrirImportador() {
-        document.getElementById('input-importar-datos').click();
-    }
-    
-    /**
-     * Importar datos desde JSON
-     */
-    importarDatos(event) {
-        const archivo = event.target.files[0];
-        
-        if (!archivo) return;
-        
-        const lector = new FileReader();
-        
-        lector.onload = (e) => {
-            try {
-                const contenido = e.target.result;
-                const datos = JSON.parse(contenido);
-                
-                // Validar que tiene estructura correcta
-                if (!datos.ingresos && !datos.gastos && !datos.deudas) {
-                    alert('⚠️ Archivo inválido. No tiene la estructura correcta.');
-                    return;
-                }
-                
-                // Confirmar antes de importar
-                const confirmacion = confirm('⚠️ Esto SOBRESCRIBIRÁ todos tus datos actuales. ¿Estás seguro?');
-                
-                if (confirmacion) {
-                    // Importar los datos
-                    Almacenamiento.importarJSON(contenido);
-                    
-                    // Esperar a que Firebase esté listo y sincronizar
-                    if (typeof FirebaseSync !== 'undefined' && window.firebaseReady) {
-                        setTimeout(() => {
-                            if (datos.ingresos) FirebaseSync.sincronizarIngresos();
-                            if (datos.gastos) FirebaseSync.sincronizarGastos();
-                            if (datos.deudas) FirebaseSync.sincronizarDeudas();
-                        }, 500);
-                    } else if (typeof FirebaseSync === 'undefined') {
-                        console.warn('Firebase aún no está listo. Se guardaron los datos localmente.');
-                    }
-                    
-                    // Actualizar vistas
-                    if (typeof DashboardModule !== 'undefined') {
-                        DashboardModule.actualizar();
-                    }
-                    if (typeof ModuloIngresos !== 'undefined') {
-                        ModuloIngresos.renderizarLista();
-                    }
-                    if (typeof ModuloGastos !== 'undefined') {
-                        ModuloGastos.renderizarLista();
-                    }
-                    if (typeof ModuloDeudas !== 'undefined') {
-                        ModuloDeudas.renderizarLista();
-                    }
-                    
-                    alert('✅ Datos importados correctamente. Se están sincronizando con Firebase...');
-                    
-                    // Limpiar input
-                    event.target.value = '';
-                }
-            } catch (error) {
-                console.error('Error al importar:', error);
-                alert('❌ Error al importar: ' + error.message);
-                event.target.value = '';
-            }
-        };
-        
-        lector.readAsText(archivo);
-    }
-    
-    /**
-     * Exportar datos como JSON
-     */
-    exportarDatos() {
-        const datos = Almacenamiento.exportarJSON();
-        
-        // Crear blob y descargar
-        const blob = new Blob([datos], { type: 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `finanzas-backup-${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        
-        alert('✅ Datos exportados correctamente');
-    }
-    
-    /**
-     * Limpiar todos los datos
-     */
-    limpiarDatos() {
-        const confirmacion = confirm('⚠️ ¿ESTÁS COMPLETAMENTE SEGURO? Esto eliminará TODOS los datos y NO se puede deshacer.');
-        
-        if (confirmacion) {
-            const dobleConfirmacion = confirm('Esta es tu última oportunidad. ¿Realmente quieres eliminar TODO?');
-            
-            if (dobleConfirmacion) {
-                Almacenamiento.limpiarTodo();
-                
-                // Recargar la página
-                window.location.reload();
-                
-                alert('✅ Todos los datos han sido eliminados');
-            }
-        }
-    }
-}
+let mesActual = new Date().getMonth() + 1;
+let añoActual = new Date().getFullYear();
 
-// Inicializar la app cuando el DOM esté listo
+// ===== INICIALIZACIÓN =====
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Inicializando Finanzas del Hogar...');
+    console.log('🚀 Iniciando Finanzas Hogar v2...');
     
-    // Crear instancia de la app
-    window.app = new FinanzasApp();
+    // Inicializar almacenamiento local
+    inicializarAlmacenamiento();
+    
+    // Registrar service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('✅ Service Worker registrado'))
+            .catch(err => console.warn('⚠️ Error registrando Service Worker:', err));
+    }
+    
+    // Inicializar Firebase
+    setTimeout(() => {
+        initializeFirebase();
+    }, 1000);
+    
+    // Configurar navegación de tabs
+    setupNavigation();
+    
+    // Cargar tab inicial
+    switchTab('dashboard');
     
     console.log('✅ App inicializada correctamente');
 });
 
-// Función auxiliar: ir al inicio
-function irAlDashboard() {
-    document.querySelector('[data-tab="dashboard"]').click();
-    window.scrollTo(0, 0);
+// ===== NAVEGACIÓN DE TABS =====
+
+function setupNavigation() {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            switchTab(tabName);
+        });
+    });
 }
+
+function switchTab(tabName) {
+    // Ocultar todas las tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Desactivar todos los botones
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Mostrar tab seleccionada
+    const tabContent = document.getElementById(`tab-${tabName}`);
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+    
+    // Activar botón
+    const navBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (navBtn) {
+        navBtn.classList.add('active');
+    }
+    
+    // Renderizar contenido según la tab
+    switch(tabName) {
+        case 'dashboard':
+            renderDashboard(document.getElementById('dashboard-content'), mesActual, añoActual);
+            break;
+        case 'ingresos':
+            renderIngresos();
+            break;
+        case 'gastos':
+            renderGastos();
+            break;
+        case 'flujos':
+            renderFlujos(document.getElementById('flujos-content'), mesActual, añoActual);
+            break;
+        case 'config':
+            renderConfiguracion();
+            break;
+    }
+}
+
+// ===== TAB: INGRESOS =====
+
+function renderIngresos() {
+    const ingresos = document.getElementById('ingresos-content');
+    
+    // Limpiar contenedor
+    ingresos.innerHTML = '';
+    
+    // Crear wrapper para formulario y lista
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'grid';
+    wrapper.style.gridTemplateColumns = '1fr 1fr';
+    wrapper.style.gap = '2rem';
+    wrapper.style.marginBottom = '2rem';
+    
+    const formContainer = document.createElement('div');
+    const listaContainer = document.createElement('div');
+    
+    wrapper.appendChild(formContainer);
+    wrapper.appendChild(listaContainer);
+    
+    ingresos.appendChild(wrapper);
+    
+    // Renderizar formulario
+    renderFormularioIngreso(formContainer);
+    
+    // Renderizar lista
+    renderListaIngresos(listaContainer, mesActual, añoActual);
+    
+    // Listeners para editar
+    window.addEventListener('editar-ingreso', (e) => {
+        renderFormularioIngreso(formContainer, e.detail);
+    });
+    
+    // Listener para actualizar lista
+    window.addEventListener('formulario-ingreso-completado', () => {
+        renderListaIngresos(listaContainer, mesActual, añoActual);
+    });
+}
+
+// ===== TAB: GASTOS =====
+
+function renderGastos() {
+    const gastos = document.getElementById('gastos-content');
+    
+    // Limpiar contenedor
+    gastos.innerHTML = '';
+    
+    // Crear wrapper para formulario y lista
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'grid';
+    wrapper.style.gridTemplateColumns = '1fr 1fr';
+    wrapper.style.gap = '2rem';
+    wrapper.style.marginBottom = '2rem';
+    
+    const formContainer = document.createElement('div');
+    const listaContainer = document.createElement('div');
+    
+    wrapper.appendChild(formContainer);
+    wrapper.appendChild(listaContainer);
+    
+    gastos.appendChild(wrapper);
+    
+    // Renderizar formulario
+    renderFormularioGasto(formContainer);
+    
+    // Renderizar lista
+    renderListaGastos(listaContainer, mesActual, añoActual);
+    
+    // Listeners para editar
+    window.addEventListener('editar-gasto', (e) => {
+        renderFormularioGasto(formContainer, e.detail);
+    });
+    
+    // Listener para actualizar lista
+    window.addEventListener('formulario-gasto-completado', () => {
+        renderListaGastos(listaContainer, mesActual, añoActual);
+    });
+}
+
+// ===== TAB: CONFIGURACIÓN =====
+
+function renderConfiguracion() {
+    const config = document.getElementById('config-content');
+    const configActual = obtenerConfig();
+    
+    const html = `
+        <div class="config-container">
+            
+            <div class="section-header">
+                <h2>⚙️ Configuración</h2>
+            </div>
+            
+            <!-- PORCENTAJES -->
+            <div class="config-item">
+                <h3>📊 Porcentajes</h3>
+                <p>Configurar los porcentajes de ganancia y diezmo</p>
+                
+                <form id="form-porcentajes" class="form-container">
+                    <div class="form-group">
+                        <label for="config-porcentaje-ganancia">Porcentaje de Ganancia (%):</label>
+                        <input type="number" id="config-porcentaje-ganancia" min="1" max="99" step="1" value="${configActual.porcentajeGanancia}" required>
+                        <small style="color: #666; margin-top: 0.3rem; display: block;">El resto se considera Costo. Actualmente: ${100 - configActual.porcentajeGanancia}% Costo</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="config-porcentaje-diezmo">Porcentaje de Diezmo (% de Ganancia):</label>
+                        <input type="number" id="config-porcentaje-diezmo" min="0" max="100" step="1" value="${configActual.porcentajeDiezmo}" required>
+                        <small style="color: #666; margin-top: 0.3rem; display: block;">Se calcula sobre la ganancia, no sobre el ingreso total</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">💾 Guardar Porcentajes</button>
+                </form>
+            </div>
+            
+            <!-- TARJETAS -->
+            <div class="config-item">
+                <h3>💳 Tarjetas</h3>
+                <p>Configurar tarjetas disponibles para gastos</p>
+                
+                <div id="lista-tarjetas" style="margin-bottom: 1rem;">
+                    ${configActual.tarjetas.map((tarjeta, index) => `
+                        <div style="background: white; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${tarjeta.nombre}</strong>
+                                <div style="font-size: 0.85rem; color: #888;">Saldo: $${(tarjeta.saldo || 0).toFixed(2)}</div>
+                            </div>
+                            <div>
+                                <button type="button" class="btn-edit btn-edit-tarjeta" data-id="${tarjeta.id}" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">✏️ Editar</button>
+                                <button type="button" class="btn-delete btn-delete-tarjeta" data-id="${tarjeta.id}" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <form id="form-nueva-tarjeta" class="form-container">
+                    <div class="form-group">
+                        <label for="config-nombre-tarjeta">Nombre de la Tarjeta:</label>
+                        <input type="text" id="config-nombre-tarjeta" placeholder="Ej: Tarjeta Crédito 1" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">➕ Agregar Tarjeta</button>
+                </form>
+            </div>
+            
+            <!-- EMPRESAS -->
+            <div class="config-item">
+                <h3>🏢 Empresas</h3>
+                <p>Configurar empresas y su estado tributario</p>
+                
+                <div id="lista-empresas" style="margin-bottom: 1rem;">
+                    ${configActual.empresas.map(empresa => `
+                        <div style="background: white; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${empresa.nombre}</strong>
+                                <div style="font-size: 0.85rem; color: #888;">
+                                    ${empresa.sujetos_impuestos ? '🏛️ Sujeta a impuestos (Hacienda)' : '✅ No sujeta a impuestos'}
+                                </div>
+                            </div>
+                            <div>
+                                <button type="button" class="btn-edit btn-edit-empresa" data-id="${empresa.id}" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">✏️ Editar</button>
+                                <button type="button" class="btn-delete btn-delete-empresa" data-id="${empresa.id}" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <form id="form-nueva-empresa" class="form-container">
+                    <div class="form-group">
+                        <label for="config-nombre-empresa">Nombre de la Empresa:</label>
+                        <input type="text" id="config-nombre-empresa" placeholder="Ej: Taller de Costura" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="config-sujeta-impuestos"> 
+                            ¿Sujeta a impuestos de Hacienda?
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">➕ Agregar Empresa</button>
+                </form>
+            </div>
+            
+            <!-- RESPALDO Y SINCRONIZACIÓN -->
+            <div class="config-item">
+                <h3>☁️ Sincronización y Respaldo</h3>
+                <p>Gestionar datos, sincronización y respaldos</p>
+                
+                <div style="display: grid; gap: 0.5rem;">
+                    <button id="btn-export" class="btn btn-secondary">📥 Descargar Respaldo (JSON)</button>
+                    <button id="btn-sync-firebase" class="btn btn-secondary">🔄 Sincronizar Firebase</button>
+                    <button id="btn-historial-flujos" class="btn btn-secondary">📈 Ver Historial Flujos (6 meses)</button>
+                </div>
+            </div>
+            
+            <!-- PELIGRO -->
+            <div class="config-item danger">
+                <h3>⚠️ Zona de Peligro</h3>
+                <p>Acciones que no se pueden deshacer</p>
+                
+                <button id="btn-limpiar-todo" class="btn btn-danger">🗑️ ELIMINAR TODOS LOS DATOS</button>
+            </div>
+        </div>
+    `;
+    
+    config.innerHTML = html;
+    setupConfigListeners();
+}
+
+// Setup de listeners en configuración
+function setupConfigListeners() {
+    // Guardar porcentajes
+    document.getElementById('form-porcentajes').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const porcentajeGanancia = parseInt(document.getElementById('config-porcentaje-ganancia').value);
+        const porcentajeDiezmo = parseInt(document.getElementById('config-porcentaje-diezmo').value);
+        
+        actualizarConfig({
+            porcentajeGanancia,
+            porcentajeDiezmo
+        });
+        
+        alert('✅ Porcentajes actualizados correctamente');
+        renderConfiguracion();
+    });
+    
+    // Agregar tarjeta
+    document.getElementById('form-nueva-tarjeta').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const nombre = document.getElementById('config-nombre-tarjeta').value;
+        const config = obtenerConfig();
+        
+        config.tarjetas.push({
+            id: 'tarjeta_' + Date.now(),
+            nombre: nombre,
+            saldo: 0
+        });
+        
+        actualizarConfig(config);
+        alert('✅ Tarjeta agregada correctamente');
+        renderConfiguracion();
+    });
+    
+    // Agregar empresa
+    document.getElementById('form-nueva-empresa').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const nombre = document.getElementById('config-nombre-empresa').value;
+        const sujetaImpuestos = document.getElementById('config-sujeta-impuestos').checked;
+        const config = obtenerConfig();
+        
+        config.empresas.push({
+            id: 'empresa_' + Date.now(),
+            nombre: nombre,
+            sujetos_impuestos: sujetaImpuestos
+        });
+        
+        actualizarConfig(config);
+        alert('✅ Empresa agregada correctamente');
+        renderConfiguracion();
+    });
+    
+    // Botones de acciones
+    document.getElementById('btn-export').addEventListener('click', () => {
+        exportarDatos();
+        alert('✅ Respaldo descargado correctamente');
+    });
+    
+    document.getElementById('btn-sync-firebase').addEventListener('click', async () => {
+        alert('🔄 Sincronizando con Firebase...');
+        if (window.fullSyncToFirebase) {
+            await fullSyncToFirebase();
+            alert('✅ Sincronización completada');
+        } else {
+            alert('⚠️ Firebase no está disponible');
+        }
+    });
+    
+    document.getElementById('btn-historial-flujos').addEventListener('click', () => {
+        switchTab('flujos');
+        setTimeout(() => {
+            renderHistorialFlujos(document.getElementById('flujos-content'), 6);
+        }, 100);
+    });
+    
+    document.getElementById('btn-limpiar-todo').addEventListener('click', () => {
+        if (limpiarTodo()) {
+            alert('✅ Todos los datos han sido eliminados');
+            renderConfiguracion();
+            switchTab('dashboard');
+        }
+    });
+}
+
+// ===== ESCUCHADORES GLOBALES =====
+
+// Escuchar cambios en almacenamiento
+window.addEventListener('sincronizacion', () => {
+    console.log('🔄 Actualizando UI por sincronización');
+    
+    // Actualizar la tab actual
+    const tabActiva = document.querySelector('.tab-content.active');
+    if (tabActiva) {
+        const tabName = tabActiva.id.replace('tab-', '');
+        switchTab(tabName);
+    }
+});
+
+// ===== INICIALIZACIÓN EN PANTALLA =====
+
+console.log('%c✅ Finanzas Hogar v2 lista', 'color: green; font-weight: bold; font-size: 14px');
+console.log('%c📱 Usuarios: Jimmy (iPhone) + Esposa (Android)', 'color: blue; font-size: 12px');
+console.log('%c🔄 Sincronización Firebase activa', 'color: purple; font-size: 12px');
+console.log('%c💾 Almacenamiento local disponible', 'color: orange; font-size: 12px');
