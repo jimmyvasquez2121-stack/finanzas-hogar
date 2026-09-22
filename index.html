@@ -2,222 +2,100 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#2c3e50">
-    <meta name="description" content="Control de finanzas familiares y negocios - Flujos de caja">
-    <title>Finanzas del Hogar v2</title>
+    <meta name="description" content="Control inteligente de finanzas familiares con flujos de caja separados">
+    
+    <title>Finanzas Inteligentes - Control de Flujos</title>
     
     <!-- Manifest para PWA -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
     
-    <!-- Estilos -->
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/estilos.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
     
-    <!-- Icono -->
-    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%232c3e50'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='0.3em'>💰</text></svg>">
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
-    <script src="js/firebase-config.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232c3e50'/><text x='50%' y='50%' font-size='60' fill='white' text-anchor='middle' dy='0.3em'>💰</text></svg>">
 </head>
 <body>
-    <div id="app">
-        <!-- Navegación -->
-        <nav class="navbar">
-            <div class="navbar-brand">
-                <h1>💰 Finanzas Inteligentes</h1>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>💰 Finanzas Inteligentes</h1>
+        </div>
+        <ul class="navbar-menu">
+            <li><button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button></li>
+            <li><button class="nav-btn" data-tab="ingresos">📈 Ingresos</button></li>
+            <li><button class="nav-btn" data-tab="gastos">💳 Gastos</button></li>
+            <li><button class="nav-btn" data-tab="flujos">🔄 Flujos</button></li>
+            <li><button class="nav-btn" data-tab="config">⚙️ Config</button></li>
+        </ul>
+    </nav>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="container">
+        
+        <!-- TAB: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content active">
+            <div class="section-header">
+                <h2>📊 Dashboard Financiero</h2>
             </div>
-            <ul class="navbar-menu">
-                <li><button class="nav-btn active" data-tab="dashboard">Dashboard</button></li>
-                <li><button class="nav-btn" data-tab="ingresos">Ingresos</button></li>
-                <li><button class="nav-btn" data-tab="gastos">Gastos</button></li>
-                <li><button class="nav-btn" data-tab="flujos">Flujos</button></li>
-                <li><button class="nav-btn" data-tab="config">⚙️</button></li>
-            </ul>
-        </nav>
+            <div id="dashboard-content">Cargando...</div>
+        </div>
 
-        <!-- Contenedor Principal -->
-        <main class="container">
-            <!-- TAB: Dashboard -->
-            <section id="dashboard-tab" class="tab-content active">
-                <div id="dashboard-container"></div>
-            </section>
+        <!-- TAB: INGRESOS -->
+        <div id="tab-ingresos" class="tab-content">
+            <div class="section-header">
+                <h2>📈 Registro de Ingresos</h2>
+            </div>
+            <div id="ingresos-content">Cargando...</div>
+        </div>
 
-            <!-- TAB: Ingresos -->
-            <section id="ingresos-tab" class="tab-content">
-                <div class="section-header">
-                    <h2>Registro de Ingresos</h2>
-                </div>
-                
-                <form id="form-ingresos" class="form-container">
-                    <div class="form-group">
-                        <label>Fecha</label>
-                        <input type="date" id="fecha-ingreso" required>
-                    </div>
+        <!-- TAB: GASTOS -->
+        <div id="tab-gastos" class="tab-content">
+            <div class="section-header">
+                <h2>💳 Registro de Gastos</h2>
+            </div>
+            <div id="gastos-content">Cargando...</div>
+        </div>
 
-                    <div class="form-group">
-                        <label>Origen del Ingreso</label>
-                        <select id="origen-ingreso" required>
-                            <option value="">-- Selecciona --</option>
-                            <option value="taller">Taller de Costura</option>
-                            <option value="tienda1">Tienda 1</option>
-                            <option value="tienda2">Tienda 2</option>
-                            <option value="bazar">Bazar</option>
-                            <option value="otro">Otro</option>
-                        </select>
-                    </div>
+        <!-- TAB: FLUJOS -->
+        <div id="tab-flujos" class="tab-content">
+            <div class="section-header">
+                <h2>🔄 Flujos de Caja Duales</h2>
+            </div>
+            <div id="flujos-content">Cargando...</div>
+        </div>
 
-                    <div class="form-group">
-                        <label>Ingreso Total ($)</label>
-                        <input type="number" id="ingreso-total" step="0.01" required placeholder="0.00">
-                    </div>
+        <!-- TAB: CONFIGURACIÓN -->
+        <div id="tab-config" class="tab-content">
+            <div id="config-content">Cargando...</div>
+        </div>
 
-                    <div class="form-group info-box">
-                        <label>📊 Desglose Automático (22% Ganancia / 78% Costo)</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.8rem;">
-                            <div>
-                                <label style="font-size: 0.9rem;">Ganancia (22%)</label>
-                                <input type="number" id="ganancia-calculo" step="0.01" readonly placeholder="0.00">
-                            </div>
-                            <div>
-                                <label style="font-size: 0.9rem;">Costo (78%)</label>
-                                <input type="number" id="costo-calculo" step="0.01" readonly placeholder="0.00">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Notas</label>
-                        <textarea id="notas-ingreso" placeholder="Detalles adicionales"></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Guardar Ingreso</button>
-                </form>
-
-                <div id="lista-ingresos" class="lista-container"></div>
-            </section>
-
-            <!-- TAB: Gastos -->
-            <section id="gastos-tab" class="tab-content">
-                <div class="section-header">
-                    <h2>Registro de Gastos</h2>
-                </div>
-
-                <form id="form-gastos" class="form-container">
-                    <div class="form-group">
-                        <label>Fecha</label>
-                        <input type="date" id="fecha-gasto" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tipo de Gasto</label>
-                        <select id="tipo-gasto" required>
-                            <option value="">-- Selecciona --</option>
-                            <option value="inversion">🏭 Reinversión/Compra de Productos</option>
-                            <option value="familiar">👨‍👩‍👧‍👦 Gasto Familiar</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <input type="text" id="descripcion-gasto" placeholder="Ej: Compra de tela, Pago de servicios, etc." required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Monto ($)</label>
-                        <input type="number" id="monto-gasto" step="0.01" required placeholder="0.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tarjeta Utilizada</label>
-                        <select id="tarjeta-gasto" required>
-                            <option value="">-- Selecciona --</option>
-                            <option value="tarjeta1">Tarjeta 1</option>
-                            <option value="tarjeta2">Tarjeta 2</option>
-                            <option value="efectivo">Efectivo</option>
-                            <option value="otra">Otra</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Guardar Gasto</button>
-                </form>
-
-                <div id="lista-gastos" class="lista-container"></div>
-            </section>
-
-            <!-- TAB: Flujos de Caja -->
-            <section id="flujos-tab" class="tab-content">
-                <div class="section-header">
-                    <h2>Flujos de Caja</h2>
-                </div>
-                <div id="flujos-container"></div>
-            </section>
-
-            <!-- TAB: Configuración -->
-            <section id="config-tab" class="tab-content">
-                <div class="section-header">
-                    <h2>⚙️ Configuración</h2>
-                </div>
-
-                <div class="config-container">
-                    <div class="config-item">
-                        <h3>% de Ganancia</h3>
-                        <p>Porcentaje automático de ganancia en ingresos</p>
-                        <div class="input-group">
-                            <input type="number" id="porcentaje-ganancia" step="0.01" placeholder="22.00" min="0" max="100">
-                            <span>%</span>
-                        </div>
-                    </div>
-
-                    <div class="config-item">
-                        <h3>% de Diezmo</h3>
-                        <p>Porcentaje de ganancia a apartar como diezmo</p>
-                        <div class="input-group">
-                            <input type="number" id="porcentaje-diezmo" step="0.01" placeholder="10.00" min="0" max="100">
-                            <span>%</span>
-                        </div>
-                    </div>
-
-                    <div class="config-item">
-                        <h3>Tarjetas</h3>
-                        <p>Configura tus tarjetas (máximo 4)</p>
-                        <div id="tarjetas-config"></div>
-                    </div>
-
-                    <div class="config-item">
-                        <h3>📤 Importar/Exportar</h3>
-                        <p>Hacer respaldos o cargar datos desde otro dispositivo</p>
-                        <button id="btn-importar-datos" class="btn btn-secondary">📤 Importar Datos (JSON)</button>
-                        <input type="file" id="input-importar-datos" accept=".json" style="display: none;">
-                        <button id="btn-exportar-datos" class="btn btn-secondary">📥 Exportar Datos (JSON)</button>
-                    </div>
-
-                    <div class="config-item danger">
-                        <h3>⚠️ Zona de Peligro</h3>
-                        <p>Estas acciones no se pueden deshacer</p>
-                        <button id="btn-limpiar-datos" class="btn btn-danger">🗑️ Limpiar Todos los Datos</button>
-                    </div>
-                </div>
-            </section>
-        </main>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/almacenamiento.js"></script>
-    <script src="js/modulos-ingresos.js"></script>
-    <script src="js/modulos-gastos.js"></script>
-    <script src="js/modulos-flujos.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/app.js"></script>
+    <!-- SCRIPTS -->
+    
+    <!-- Firebase SDK (Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    
+    <!-- Scripts de la aplicación -->
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/almacenamiento.js"></script>
+    <script src="/js/modulos-ingresos.js"></script>
+    <script src="/js/modulos-gastos.js"></script>
+    <script src="/js/modulos-flujos.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/app.js"></script>
 
-    <!-- Registrar Service Worker para PWA -->
+    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(reg => console.log('Service Worker registrado'))
-                .catch(err => console.log('Error en Service Worker:', err));
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => console.log('✅ Service Worker registrado'))
+                .catch(err => console.warn('⚠️ Error registrando Service Worker:', err.message));
         }
     </script>
 </body>
