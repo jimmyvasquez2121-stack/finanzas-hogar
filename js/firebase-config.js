@@ -9,7 +9,6 @@ const firebaseConfig = {
     appId: "1:123456789012:web:abcd1234efgh5678ijkl"
 };
 
-// Inicializar Firebase (CDN en index.html)
 let database = null;
 let userId = localStorage.getItem('userId') || 'user_' + Date.now();
 
@@ -178,7 +177,7 @@ async function getAllDataFromFirebase() {
     if (!database) return null;
 
     try {
-        const snapshot = await database.ref('finanzas').get();
+        const snapshot = await database.ref('finanzas').once('value');
         return snapshot.val() || {};
     } catch (error) {
         console.error('❌ Error obteniendo datos:', error);
