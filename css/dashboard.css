@@ -1,0 +1,352 @@
+/* ===== DASHBOARD LAYOUT ===== */
+.dashboard-container {
+    display: grid;
+    gap: 2rem;
+}
+
+/* ===== CARDS DE ESTADÍSTICAS ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card.ingreso {
+    border-left-color: var(--success);
+}
+
+.stat-card.ganancia {
+    border-left-color: var(--secondary);
+}
+
+.stat-card.costo {
+    border-left-color: var(--warning);
+}
+
+.stat-card.diezmo {
+    border-left-color: #9b59b6;
+}
+
+.stat-card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.stat-card-sublabel {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 0.5rem;
+}
+
+/* ===== FLUJOS DE CAJA ===== */
+.flujos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.flujo-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border-top: 4px solid;
+}
+
+.flujo-card.ganancia {
+    border-top-color: var(--secondary);
+}
+
+.flujo-card.costo {
+    border-top-color: var(--warning);
+}
+
+.flujo-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flujo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--light);
+}
+
+.flujo-item:last-child {
+    border-bottom: none;
+}
+
+.flujo-label {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.flujo-valor {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.flujo-item.disponible {
+    background: rgba(39, 174, 96, 0.05);
+    padding: 0.8rem;
+    border-radius: var(--radius);
+    margin-top: 1rem;
+    font-weight: 700;
+}
+
+.flujo-item.disponible .flujo-valor {
+    color: var(--success);
+}
+
+/* ===== SUMMARY BOX ===== */
+.summary-box {
+    background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.summary-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.summary-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.summary-item-label {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-bottom: 0.5rem;
+}
+
+.summary-item-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* ===== ALERTAS ===== */
+.alert {
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+}
+
+.alert-content h4 {
+    margin: 0;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
+.alert-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.alert-warning {
+    background: rgba(243, 156, 18, 0.1);
+    border: 1px solid var(--warning);
+    color: #c86c1b;
+}
+
+.alert-success {
+    background: rgba(39, 174, 96, 0.1);
+    border: 1px solid var(--success);
+    color: #186d38;
+}
+
+.alert-info {
+    background: rgba(52, 152, 219, 0.1);
+    border: 1px solid var(--secondary);
+    color: #1a5c8f;
+}
+
+/* ===== PROGRESO ===== */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--light);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary) 0%, #2980b9 100%);
+    transition: width 0.3s ease;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* ===== TABLAS ===== */
+.table-responsive {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.table thead {
+    background: var(--light);
+    font-weight: 600;
+}
+
+.table th {
+    padding: 1rem;
+    text-align: left;
+    color: var(--dark);
+    border-bottom: 2px solid var(--border);
+}
+
+.table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--light);
+}
+
+.table tbody tr:hover {
+    background: var(--light);
+}
+
+/* ===== BADGE ===== */
+.badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: rgba(39, 174, 96, 0.2);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: rgba(243, 156, 18, 0.2);
+    color: var(--warning);
+}
+
+.badge-danger {
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--danger);
+}
+
+.badge-info {
+    background: rgba(52, 152, 219, 0.2);
+    color: var(--secondary);
+}
+
+/* ===== RESPONSIVE DASHBOARD ===== */
+@media (max-width: 1024px) {
+    .flujos-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .table {
+        font-size: 0.9rem;
+    }
+    
+    .table th, .table td {
+        padding: 0.6rem 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .flujo-card {
+        padding: 1rem;
+    }
+    
+    .stat-card-value {
+        font-size: 1.5rem;
+    }
+    
+    .summary-box {
+        padding: 1rem;
+    }
+}
