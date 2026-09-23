@@ -15,19 +15,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
             .then(reg => console.log('✅ Service Worker registrado'))
-            .catch(err => console.warn('⚠️ Error registrando Service Worker:', err));
+            .catch(err => console.warn('⚠️ Error registrando Service Worker:', err.message));
     }
-    
-    // Inicializar Firebase
-    setTimeout(() => {
-        initializeFirebase();
-    }, 1000);
     
     // Configurar navegación de tabs
     setupNavigation();
     
     // Cargar tab inicial
     switchTab('dashboard');
+    
+    // Esperar a que Firebase esté disponible (no es crítico)
+    let attempts = 0;
+    const maxAttempts = 100;
+    
+    const checkFirebase = setInterval(() => {
+        if (typeof firebase !== 'undefined' && firebase.database) {
+            clearInterval(checkFirebase);
+            console.log('✅ Firebase disponible, inicializando...');
+            initializeFirebase();
+        } else {
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(checkFirebase);
+                console.warn('⚠️ Firebase no disponible - app en modo offline');
+            }
+        }
+    }, 200);
     
     console.log('✅ App inicializada correctamente');
 });

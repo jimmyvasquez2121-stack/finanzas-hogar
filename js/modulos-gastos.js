@@ -15,14 +15,26 @@
 
 // ===== TIPOS DE GASTO =====
 const TIPOS_GASTO = {
-    REINVERSION: 'reinversion',  // Salen del flujo de COSTO
-    FAMILIAR: 'familiar'          // Salen del flujo de GANANCIA
+    REINVERSION: 'reinversion',
+    NOMINA: 'nomina',
+    INTERNET: 'internet',
+    ELECTRICIDAD: 'electricidad',
+    RENTA: 'renta',
+    AGUA: 'agua',
+    FAMILIAR: 'familiar'
 };
 
 const ETIQUETAS_GASTO = {
     'reinversion': '🏭 Reinversión',
-    'familiar': '👨‍👩‍👧 Familiar'
+    'nomina': '💼 Nómina/Salarios',
+    'internet': '🌐 Internet',
+    'electricidad': '💡 Electricidad',
+    'renta': '🏢 Renta',
+    'agua': '💧 Agua',
+    'familiar': '👨‍👩‍👧 Gastos Familiares'
 };
+
+const GASTOS_OPERATIVOS = ['reinversion', 'nomina', 'internet', 'electricidad', 'renta', 'agua'];
 
 // ===== GUARDAR GASTO =====
 
@@ -89,12 +101,34 @@ function actualizarGastoExistente(id, datos) {
 function obtenerResumenGastos(mes, año) {
     const gastos = obtenerGastosPorMes(mes, año);
     
+    let totalOperativos = 0;
     let totalReinversion = 0;
+    let totalNomina = 0;
+    let totalElectricidad = 0;
+    let totalInternet = 0;
+    let totalRenta = 0;
+    let totalAgua = 0;
     let totalFamiliar = 0;
     
     gastos.forEach(gasto => {
         if (gasto.tipo === TIPOS_GASTO.REINVERSION) {
             totalReinversion += gasto.monto;
+            totalOperativos += gasto.monto;
+        } else if (gasto.tipo === TIPOS_GASTO.NOMINA) {
+            totalNomina += gasto.monto;
+            totalOperativos += gasto.monto;
+        } else if (gasto.tipo === TIPOS_GASTO.ELECTRICIDAD) {
+            totalElectricidad += gasto.monto;
+            totalOperativos += gasto.monto;
+        } else if (gasto.tipo === TIPOS_GASTO.INTERNET) {
+            totalInternet += gasto.monto;
+            totalOperativos += gasto.monto;
+        } else if (gasto.tipo === TIPOS_GASTO.RENTA) {
+            totalRenta += gasto.monto;
+            totalOperativos += gasto.monto;
+        } else if (gasto.tipo === TIPOS_GASTO.AGUA) {
+            totalAgua += gasto.monto;
+            totalOperativos += gasto.monto;
         } else if (gasto.tipo === TIPOS_GASTO.FAMILIAR) {
             totalFamiliar += gasto.monto;
         }
@@ -102,11 +136,17 @@ function obtenerResumenGastos(mes, año) {
     
     return {
         periodo: `${mes}/${año}`,
-        totalGastos: Math.round((totalReinversion + totalFamiliar) * 100) / 100,
+        totalGastos: Math.round((totalOperativos + totalFamiliar) * 100) / 100,
+        gastoOperativos: Math.round(totalOperativos * 100) / 100,
         gastoReinversion: Math.round(totalReinversion * 100) / 100,
+        gastoNomina: Math.round(totalNomina * 100) / 100,
+        gastoElectricidad: Math.round(totalElectricidad * 100) / 100,
+        gastoInternet: Math.round(totalInternet * 100) / 100,
+        gastoRenta: Math.round(totalRenta * 100) / 100,
+        gastoAgua: Math.round(totalAgua * 100) / 100,
         gastoFamiliar: Math.round(totalFamiliar * 100) / 100,
         cantidad: gastos.length,
-        cantidadReinversion: gastos.filter(g => g.tipo === TIPOS_GASTO.REINVERSION).length,
+        cantidadOperativos: gastos.filter(g => GASTOS_OPERATIVOS.includes(g.tipo)).length,
         cantidadFamiliar: gastos.filter(g => g.tipo === TIPOS_GASTO.FAMILIAR).length,
         gastos
     };
@@ -138,13 +178,26 @@ function obtenerResumenGastosPorTarjeta(mes, año) {
     return resumen;
 }
 
-// Obtener gastos por tipo (reinversión vs familiar)
+// Obtener gastos por tipo (operativos vs familiar)
 function obtenerGastosAgrupados(mes, año) {
     const gastos = obtenerGastosPorMes(mes, año);
     
+    const operativos = gastos.filter(g => GASTOS_OPERATIVOS.includes(g.tipo));
+    const familiar = gastos.filter(g => g.tipo === TIPOS_GASTO.FAMILIAR);
+    
+    // Ordenar operativos por tipo
+    const operativosOrdenados = {
+        reinversion: operativos.filter(g => g.tipo === TIPOS_GASTO.REINVERSION),
+        nomina: operativos.filter(g => g.tipo === TIPOS_GASTO.NOMINA),
+        electricidad: operativos.filter(g => g.tipo === TIPOS_GASTO.ELECTRICIDAD),
+        internet: operativos.filter(g => g.tipo === TIPOS_GASTO.INTERNET),
+        renta: operativos.filter(g => g.tipo === TIPOS_GASTO.RENTA),
+        agua: operativos.filter(g => g.tipo === TIPOS_GASTO.AGUA)
+    };
+    
     return {
-        reinversion: gastos.filter(g => g.tipo === TIPOS_GASTO.REINVERSION),
-        familiar: gastos.filter(g => g.tipo === TIPOS_GASTO.FAMILIAR)
+        operativos: operativosOrdenados,
+        familiar: familiar
     };
 }
 
@@ -163,16 +216,35 @@ function renderFormularioGasto(contenedor, gastoExistente = null) {
             <label for="gasto-tipo">Tipo de Gasto:</label>
             <select id="gasto-tipo" required>
                 <option value="">Seleccionar tipo...</option>
-                <option value="${TIPOS_GASTO.REINVERSION}" ${gastoExistente?.tipo === TIPOS_GASTO.REINVERSION ? 'selected' : ''}>
-                    🏭 Reinversión (Compra de productos)
-                </option>
-                <option value="${TIPOS_GASTO.FAMILIAR}" ${gastoExistente?.tipo === TIPOS_GASTO.FAMILIAR ? 'selected' : ''}>
-                    👨‍👩‍👧 Gasto Familiar (Gastos del hogar)
-                </option>
+                <optgroup label="📊 Gastos Operativos (Flujo Costo)">
+                    <option value="${TIPOS_GASTO.REINVERSION}" ${gastoExistente?.tipo === TIPOS_GASTO.REINVERSION ? 'selected' : ''}>
+                        🏭 Reinversión (Compra de productos)
+                    </option>
+                    <option value="${TIPOS_GASTO.NOMINA}" ${gastoExistente?.tipo === TIPOS_GASTO.NOMINA ? 'selected' : ''}>
+                        💼 Nómina/Salarios
+                    </option>
+                    <option value="${TIPOS_GASTO.ELECTRICIDAD}" ${gastoExistente?.tipo === TIPOS_GASTO.ELECTRICIDAD ? 'selected' : ''}>
+                        💡 Electricidad
+                    </option>
+                    <option value="${TIPOS_GASTO.INTERNET}" ${gastoExistente?.tipo === TIPOS_GASTO.INTERNET ? 'selected' : ''}>
+                        🌐 Internet
+                    </option>
+                    <option value="${TIPOS_GASTO.RENTA}" ${gastoExistente?.tipo === TIPOS_GASTO.RENTA ? 'selected' : ''}>
+                        🏢 Renta
+                    </option>
+                    <option value="${TIPOS_GASTO.AGUA}" ${gastoExistente?.tipo === TIPOS_GASTO.AGUA ? 'selected' : ''}>
+                        💧 Agua
+                    </option>
+                </optgroup>
+                <optgroup label="👨‍👩‍👧 Gastos Personales (Flujo Ganancia)">
+                    <option value="${TIPOS_GASTO.FAMILIAR}" ${gastoExistente?.tipo === TIPOS_GASTO.FAMILIAR ? 'selected' : ''}>
+                        👨‍👩‍👧 Gastos Familiares
+                    </option>
+                </optgroup>
             </select>
             <small style="color: #666; margin-top: 0.3rem; display: block;">
-                • <strong>Reinversión:</strong> Sale del flujo de COSTO
-                <br>• <strong>Familiar:</strong> Sale del flujo de GANANCIA
+                • <strong>Gastos Operativos:</strong> Salen del flujo de COSTO
+                <br>• <strong>Gastos Familiares:</strong> Salen del flujo de GANANCIA
             </small>
         </div>
         
@@ -262,31 +334,83 @@ function renderListaGastos(contenedor, mes = null, año = null) {
                     <div style="font-size: 0.8rem; margin-top: 0.5rem;">${resumen.cantidad} transacciones</div>
                 </div>
                 <div style="background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 0.85rem; opacity: 0.9;">🏭 Reinversión</div>
-                    <div style="font-size: 1.8rem; font-weight: 700;">$${resumen.gastoReinversion.toFixed(2)}</div>
-                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">${resumen.cantidadReinversion} compras</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">📊 Gastos Operativos</div>
+                    <div style="font-size: 1.8rem; font-weight: 700;">$${resumen.gastoOperativos.toFixed(2)}</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">${resumen.cantidadOperativos} gastos</div>
                 </div>
                 <div style="background: linear-gradient(135deg, #e67e22 0%, #c0562c 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 0.85rem; opacity: 0.9;">👨‍👩‍👧 Familiar</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">👨‍👩‍👧 Gastos Familiares</div>
                     <div style="font-size: 1.8rem; font-weight: 700;">$${resumen.gastoFamiliar.toFixed(2)}</div>
                     <div style="font-size: 0.8rem; margin-top: 0.5rem;">${resumen.cantidadFamiliar} gastos</div>
                 </div>
             </div>
             
-            <div style="margin-bottom: 2rem;">
-                <h4 style="margin-bottom: 1rem; color: #2c3e50;">🏭 Gastos de Reinversión (Flujo de Costo)</h4>
-                <div class="lista-items">
-                    ${gastosAgrupados.reinversion.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">🎯</div>No hay reinversiones registradas</div>' : ''}
-                    ${gastosAgrupados.reinversion.map(gasto => renderItemGasto(gasto)).join('')}
-                </div>
-            </div>
+            <!-- GASTOS OPERATIVOS POR CATEGORÍA -->
+            <h4 style="margin-bottom: 1rem; color: #2c3e50; margin-top: 2rem; font-weight: 700;">📊 Gastos Operativos (Flujo de Costo)</h4>
             
-            <div>
-                <h4 style="margin-bottom: 1rem; color: #2c3e50;">👨‍👩‍👧 Gastos Familiares (Flujo de Ganancia)</h4>
-                <div class="lista-items">
-                    ${gastosAgrupados.familiar.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">🏠</div>No hay gastos familiares registrados</div>' : ''}
-                    ${gastosAgrupados.familiar.map(gasto => renderItemGasto(gasto)).join('')}
+            ${gastosAgrupados.operativos.reinversion.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 0.5rem;">🏭 Reinversión ($${resumen.gastoReinversion.toFixed(2)})</div>
+                    <div class="lista-items">
+                        ${gastosAgrupados.operativos.reinversion.map(gasto => renderItemGasto(gasto)).join('')}
+                    </div>
                 </div>
+            ` : ''}
+            
+            ${gastosAgrupados.operativos.nomina.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 0.5rem;">💼 Nómina/Salarios ($${resumen.gastoNomina.toFixed(2)})</div>
+                    <div class="lista-items">
+                        ${gastosAgrupados.operativos.nomina.map(gasto => renderItemGasto(gasto)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${gastosAgrupados.operativos.electricidad.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 0.5rem;">💡 Electricidad ($${resumen.gastoElectricidad.toFixed(2)})</div>
+                    <div class="lista-items">
+                        ${gastosAgrupados.operativos.electricidad.map(gasto => renderItemGasto(gasto)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${gastosAgrupados.operativos.internet.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 0.5rem;">🌐 Internet ($${resumen.gastoInternet.toFixed(2)})</div>
+                    <div class="lista-items">
+                        ${gastosAgrupados.operativos.internet.map(gasto => renderItemGasto(gasto)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${gastosAgrupados.operativos.renta.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 0.5rem;">🏢 Renta ($${resumen.gastoRenta.toFixed(2)})</div>
+                    <div class="lista-items">
+                        ${gastosAgrupados.operativos.renta.map(gasto => renderItemGasto(gasto)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${gastosAgrupados.operativos.agua.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 0.5rem;">💧 Agua ($${resumen.gastoAgua.toFixed(2)})</div>
+                    <div class="lista-items">
+                        ${gastosAgrupados.operativos.agua.map(gasto => renderItemGasto(gasto)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${Object.values(gastosAgrupados.operativos).every(arr => arr.length === 0) ? `
+                <div class="empty-state"><div class="empty-state-icon">🎯</div>No hay gastos operativos registrados</div>
+            ` : ''}
+            
+            <!-- GASTOS FAMILIARES -->
+            <h4 style="margin-bottom: 1rem; color: #2c3e50; margin-top: 2rem; font-weight: 700;">👨‍👩‍👧 Gastos Familiares (Flujo de Ganancia)</h4>
+            <div class="lista-items">
+                ${gastosAgrupados.familiar.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">🏠</div>No hay gastos familiares registrados</div>' : ''}
+                ${gastosAgrupados.familiar.map(gasto => renderItemGasto(gasto)).join('')}
             </div>
         </div>
     `;

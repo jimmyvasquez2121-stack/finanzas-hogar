@@ -9,7 +9,7 @@ function calcularFlujosDelPeriodo(mes, año) {
     const gananciaDisponible = Math.round((resumenIngresos.totalGanancia - resumenIngresos.totalDiezmo - resumenGastos.gastoFamiliar) * 100) / 100;
     
     // FLUJO DE COSTO (78% del ingreso)
-    const costoDisponible = Math.round((resumenIngresos.totalCosto - resumenGastos.gastoReinversion) * 100) / 100;
+    const costoDisponible = Math.round((resumenIngresos.totalCosto - resumenGastos.gastoOperativos) * 100) / 100;
     
     return {
         periodo: `${mes}/${año}`,
@@ -27,6 +27,12 @@ function calcularFlujosDelPeriodo(mes, año) {
         flujoCosto: {
             entrada: resumenIngresos.totalCosto,
             reinversion: resumenGastos.gastoReinversion,
+            nomina: resumenGastos.gastoNomina,
+            electricidad: resumenGastos.gastoElectricidad,
+            internet: resumenGastos.gastoInternet,
+            renta: resumenGastos.gastoRenta,
+            agua: resumenGastos.gastoAgua,
+            totalOperativos: resumenGastos.gastoOperativos,
             disponible: costoDisponible,
             porcentajeEntrada: 78
         },
@@ -139,9 +145,19 @@ function renderFlujos(contenedor, mes = null, año = null) {
                     <span class="flujo-valor" style="color: var(--success);">+$${flujos.flujoCosto.entrada.toFixed(2)}</span>
                 </div>
                 
+                <div style="font-size: 0.85rem; color: #666; padding: 0.8rem 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin: 0.5rem 0;">
+                    <strong>Gastos Operativos:</strong>
+                    ${flujos.flujoCosto.reinversion > 0 ? `<div>🏭 Reinversión: -$${flujos.flujoCosto.reinversion.toFixed(2)}</div>` : ''}
+                    ${flujos.flujoCosto.nomina > 0 ? `<div>💼 Nómina: -$${flujos.flujoCosto.nomina.toFixed(2)}</div>` : ''}
+                    ${flujos.flujoCosto.electricidad > 0 ? `<div>💡 Electricidad: -$${flujos.flujoCosto.electricidad.toFixed(2)}</div>` : ''}
+                    ${flujos.flujoCosto.internet > 0 ? `<div>🌐 Internet: -$${flujos.flujoCosto.internet.toFixed(2)}</div>` : ''}
+                    ${flujos.flujoCosto.renta > 0 ? `<div>🏢 Renta: -$${flujos.flujoCosto.renta.toFixed(2)}</div>` : ''}
+                    ${flujos.flujoCosto.agua > 0 ? `<div>💧 Agua: -$${flujos.flujoCosto.agua.toFixed(2)}</div>` : ''}
+                </div>
+                
                 <div class="flujo-item">
-                    <span class="flujo-label">Reinversión (Compras)</span>
-                    <span class="flujo-valor" style="color: var(--danger);">-$${flujos.flujoCosto.reinversion.toFixed(2)}</span>
+                    <span class="flujo-label">Total Operativos</span>
+                    <span class="flujo-valor" style="color: var(--danger);">-$${flujos.flujoCosto.totalOperativos.toFixed(2)}</span>
                 </div>
                 
                 <div class="flujo-item disponible">
