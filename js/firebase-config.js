@@ -20,6 +20,7 @@ if (!localStorage.getItem('userId')) {
 // Esperar a que Firebase esté disponible
 function initializeFirebase() {
     try {
+        firebase.initializeApp(firebaseConfig);
         database = firebase.database();
         console.log('✅ Firebase inicializado correctamente');
         setupSyncListeners();
